@@ -1,11 +1,10 @@
-const CACHE_NAME = 'pwa-offline-v1';
+const CACHE_NAME = 'pwa-offline-v2';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-// تثبيت الـ Service Worker وتخزين الملفات الأساسية
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +15,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// تنشيط وتطهير الـ Cache القديم
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -33,16 +31,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// استراتيجية الاستجابة: حاول الحصول من الكاش أولاً، ثم اطلب من الشبكة
 self.addEventListener('fetch', (event) => {
-  // تجاهل الطلبات غير المقبولة مثل طلبات التوسيع
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // تحديث الكاش بالنسخة الجديدة من الشبكة
-        if (networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
@@ -50,7 +45,7 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // في حال الفشل التام للشبكة، يتم استخدام الكاش
+        // الاستجابة من الكاش عند انقطاع الشبكة
       });
 
       return cachedResponse || fetchPromise;
