@@ -1,157 +1,295 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تطبيق Offline-First PWA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصّة تنسيق الزيارات الميدانية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   RESET & TOKENS
+   ========================================================= */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{
+  font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;
+  background:#0f172a;
+  color:#f8fafc;
+  min-height:100vh;
+  overflow-x:hidden;
+}
 
-  <!-- Web App Manifest -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#2563eb">
+:root{
+  --brand-red: #e1251b;
+  --bg-dark: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 16px;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --text-muted: #94a3b8;
+}
 
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; padding: 2rem; max-width: 600px; margin: auto; background-color: #f8fafc; color: #1e293b; }
-    .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-    .status { padding: 0.5rem 1rem; border-radius: 9999px; font-weight: bold; display: inline-block; font-size: 0.875rem; }
-    .online { background-color: #dcfce7; color: #166534; }
-    .offline { background-color: #fee2e2; color: #991b1b; }
-    input, button { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
-    input { width: 70%; margin-left: 2%; }
-    button { background-color: #2563eb; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #1d4ed8; }
-    ul { list-style: none; padding: 0; }
-    li { background: white; padding: 0.75rem; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-    .pending-tag { font-size: 0.75rem; background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; }
-  </style>
+/* =========================================================
+   TOP HEADER NAVIGATION (مقتبس من تصميم الصورة)
+   ========================================================= */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--card-border);
+  padding: 12px 24px;
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--brand-red), #962d26);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(225, 37, 27, 0.3);
+}
+
+.brand-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 41, 59, 0.5);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+}
+
+.nav-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab-btn.is-active {
+  background: var(--brand-red);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(225, 37, 27, 0.4);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-primary {
+  background: var(--brand-red);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(225, 37, 27, 0.3);
+}
+
+/* =========================================================
+   MAIN CONTENT GRID AREA
+   ========================================================= */
+.main-container {
+  max-width: 1400px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.kpi-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  color: #fff;
+}
+
+.content-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .content-row { grid-template-columns: 1fr; }
+  .header-container { flex-wrap: wrap; }
+}
+</style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>حالة الاتصال</h2>
-    <span id="connectionStatus" class="status online">متصل بالإنترنت</span>
-  </div>
+<header class="app-header">
+  <div class="header-container">
+    <!-- Brand -->
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">درب</div>
+        <div class="brand-subtitle">تنسيق الزيارات الميدانية</div>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2>إضافة بيانات</h2>
-    <div style="display: flex;">
-      <input type="text" id="dataInput" placeholder="أدخل بياناتك هنا...">
-      <button onclick="handleSave()">حفظ</button>
+    <!-- Navigation Bar -->
+    <nav class="nav-tabs">
+      <button class="nav-tab-btn is-active">الرئيسية</button>
+      <button class="nav-tab-btn">التقويم</button>
+      <button class="nav-tab-btn">أرشيف الزيارات</button>
+      <button class="nav-tab-btn">اعتماد التقارير</button>
+      <button class="nav-tab-btn">دليل الشركات</button>
+      <button class="nav-tab-btn">إدارة الفريق</button>
+    </nav>
+
+    <!-- Topbar Actions -->
+    <div class="header-actions">
+      <button class="btn-primary">+ زيارة جديدة</button>
+    </div>
+  </div>
+</header>
+
+<main class="main-container">
+  <!-- KPI Grid -->
+  <div class="dashboard-grid">
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">إجمالي الزيارات</span>
+      </div>
+      <div class="kpi-num">48</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">الزيارات المكتملة</span>
+      </div>
+      <div class="kpi-num">32</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">قيد الانتظار</span>
+      </div>
+      <div class="kpi-num">11</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <span class="kpi-title">نسبة الإنجاز</span>
+      </div>
+      <div class="kpi-num">66%</div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>البيانات المخزنة</h2>
-    <ul id="dataList"></ul>
+  <!-- Panels Row -->
+  <div class="content-row">
+    <div class="panel">
+      <div class="panel-title">جدول الزيارات القادمة</div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">لا توجد زيارات مجدولة لهذا اليوم.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title">حالة التقارير</div>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">جميع التقارير معتمدة حتى الآن.</p>
+    </div>
   </div>
+</main>
 
-  <script>
-    // 1. تسجيل الـ Service Worker باستخدام مسار نسبي مناسب لـ GitHub Pages
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker Registered!', reg))
-          .catch(err => console.error('Service Worker Registration Failed!', err));
-      });
-    }
-
-    // 2. متابعة حالة الاتصال بالإنترنت
-    const statusEl = document.getElementById('connectionStatus');
-    function updateOnlineStatus() {
-      if (navigator.onLine) {
-        statusEl.textContent = 'متصل بالإنترنت';
-        statusEl.className = 'status online';
-        syncDataWithServer();
-      } else {
-        statusEl.textContent = 'غير متصل بالإنترنت (Offline)';
-        statusEl.className = 'status offline';
-      }
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-
-    // 3. إدارة IndexedDB التخزين المحلي
-    let db;
-    const request = indexedDB.open('OfflineAppDB', 1);
-
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-      if (!db.objectStoreNames.contains('records')) {
-        db.createObjectStore('records', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      renderList();
-    };
-
-    // 4. حفظ البيانات
-    function handleSave() {
-      const input = document.getElementById('dataInput');
-      if (!input.value.trim()) return;
-
-      const record = {
-        text: input.value,
-        synced: navigator.onLine,
-        createdAt: new Date().toISOString()
-      };
-
-      const tx = db.transaction('records', 'readwrite');
-      const store = tx.objectStore('records');
-      store.add(record);
-
-      tx.oncomplete = () => {
-        input.value = '';
-        renderList();
-        if (navigator.onLine) {
-          syncDataWithServer();
-        }
-      };
-    }
-
-    // 5. عرض البيانات المخزنة محلياً
-    function renderList() {
-      if (!db) return;
-      const tx = db.transaction('records', 'readonly');
-      const store = tx.objectStore('records');
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const list = document.getElementById('dataList');
-        list.innerHTML = '';
-        request.result.forEach(item => {
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <span>${item.text}</span>
-            ${!item.synced ? '<span class="pending-tag">بانتظار المزامنة</span>' : ''}
-          `;
-          list.appendChild(li);
-        });
-      };
-    }
-
-    // 6. محاكاة مزامنة البيانات
-    function syncDataWithServer() {
-      if (!db) return;
-      const tx = db.transaction('records', 'readwrite');
-      const store = tx.objectStore('records');
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const unsyncedItems = request.result.filter(item => !item.synced);
-        if (unsyncedItems.length === 0) return;
-
-        unsyncedItems.forEach(item => {
-          item.synced = true;
-          store.put(item);
-        });
-
-        tx.oncomplete = () => {
-          renderList();
-        };
-      };
-    }
-  </script>
 </body>
 </html>
