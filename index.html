@@ -6,7 +6,7 @@
   <title>تطبيق Offline-First PWA</title>
 
   <!-- Web App Manifest -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2563eb">
 
   <style>
@@ -20,7 +20,7 @@
     button { background-color: #2563eb; color: white; border: none; cursor: pointer; }
     button:hover { background-color: #1d4ed8; }
     ul { list-style: none; padding: 0; }
-    li { background: white; padding: 0.75rem; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+    li { background: white; padding: 0.75rem; margin-top: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .pending-tag { font-size: 0.75rem; background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; }
   </style>
 </head>
@@ -45,10 +45,10 @@
   </div>
 
   <script>
-    // 1. تسجيل الـ Service Worker
+    // 1. تسجيل الـ Service Worker باستخدام مسار نسبي مناسب لـ GitHub Pages
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js')
           .then(reg => console.log('Service Worker Registered!', reg))
           .catch(err => console.error('Service Worker Registration Failed!', err));
       });
@@ -60,7 +60,7 @@
       if (navigator.onLine) {
         statusEl.textContent = 'متصل بالإنترنت';
         statusEl.className = 'status online';
-        syncDataWithServer(); // مزامنة البيانات الملعقة فور عودة الاتصال
+        syncDataWithServer();
       } else {
         statusEl.textContent = 'غير متصل بالإنترنت (Offline)';
         statusEl.className = 'status offline';
@@ -86,7 +86,7 @@
       renderList();
     };
 
-    // 4. حفظ البيانات (سواء متصل أو غير متصل)
+    // 4. حفظ البيانات
     function handleSave() {
       const input = document.getElementById('dataInput');
       if (!input.value.trim()) return;
@@ -131,7 +131,7 @@
       };
     }
 
-    // 6. محاكاة مزامنة البيانات مع الخادم (Backend Sync)
+    // 6. محاكاة مزامنة البيانات
     function syncDataWithServer() {
       if (!db) return;
       const tx = db.transaction('records', 'readwrite');
@@ -140,13 +140,8 @@
 
       request.onsuccess = () => {
         const unsyncedItems = request.result.filter(item => !item.synced);
-        
         if (unsyncedItems.length === 0) return;
 
-        console.log('جاري مزامنة البيانات غير المزامنة مع الخادم...', unsyncedItems);
-
-        // هنا يتم إرسال طلبات fetch إلى الـ API الخارجي
-        // محاكاة نجاح إرسال البيانات للـ API:
         unsyncedItems.forEach(item => {
           item.synced = true;
           store.put(item);
@@ -154,7 +149,6 @@
 
         tx.oncomplete = () => {
           renderList();
-          console.log('تمت المزامنة بنجاح!');
         };
       };
     }
